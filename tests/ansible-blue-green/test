@@ -1,0 +1,26 @@
+#!/bin/bash
+# -*- bash -*-
+
+# This gives you access to the custom DSL
+. "${ROLESPEC_LIB}/main"
+. "${ROLESPEC_TEST}/defaults.conf"
+
+# Get CI_USER
+if [ -z "${TRAVIS}" ]; then
+  CI_USER="vagrant"
+else
+  CI_USER="${USER}"
+fi
+
+# Install a specific version of Ansible
+install_ansible ${test_ansible_version}
+
+# Préreq
+# ansible-galaxy install -r requirements.yml
+
+# Check syntax first, and then that the playbook runs
+assert_playbook_runs -e "ci_user=$CI_USER"
+
+# Check that the playbook is idempotent
+assert_playbook_idempotent -e "ci_user=$CI_USER" 
+

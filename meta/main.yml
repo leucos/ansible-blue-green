@@ -1,0 +1,12 @@
+---
+
+# file: {{ role_name }}/meta/main.yml
+
+galaxy_info:
+  author: Michel Blanc
+  description: Blue-Green deployment check playbook 
+  company: devOps.works
+  license: MIT
+  min_ansible_version: 1.2
+  
+dependencies: []

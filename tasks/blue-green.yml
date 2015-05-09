@@ -1,0 +1,69 @@
+- name: Show blue_green_directories variables
+  debug: var=blue_green_directories
+  when: verbose is defined
+
+- name: Checks that directories variable are set
+  fail: msg="'blue_green_directories' dict variable is not set. Please, see README.md."
+  when: blue_green_directories is not defined
+
+- name: Checks that directories variable contains proper colors
+  fail: msg="'blue_green_directories' application path for {{ item }} is not set. Please, see README.md."
+  when: blue_green_directories[item] is not defined
+  with_items:
+    - blue
+    - green
+
+- name: Check which color to deploy
+  shell: git show -s --format=%ct
+  with_items:
+    - blue
+    - green
+  args:
+    chdir: "{{ blue_green_directories[item] }}"
+  register: color_dates
+  ignore_errors: yes
+
+- name: Prints debug
+  debug: var=color_dates
+  when: verbose is defined
+
+- name: Set color
+  set_fact: blue_green_color={{color_dates['results'][1]['item']}}
+  when: "color_dates|success and (color_dates['results'][0]['stdout'] > color_dates['results'][1]['stdout'])"
+
+# Lower than or equal operator makes sure blue or green wins is both directories
+# contains the exact same version (e.g., after bootstrapping empty directories)
+- name: Set color
+  set_fact: blue_green_color={{color_dates['results'][0]['item']}}
+  when: "color_dates|success and (color_dates['results'][0]['stdout'] <= color_dates['results'][1]['stdout'])"
+
+- name: Override to set deploy to failed color (bootstrapping case)
+  set_fact: blue_green_color={{ item.item }}
+  when: item | failed
+  with_items: color_dates['results']
+
+- name: Set deploy directory
+  set_fact: blue_green_color_directory={{ blue_green_directories[blue_green_color] }}
+
+# We also return the parent directory if git module is used
+# We remove last directory component so git module doesn't subsequentely
+# deploys to /some/dir/component/component
+- name: Set deploy directory
+  set_fact: blue_green_color_parent_directory={{ blue_green_color_directory | regex_replace('^(.*)/[^/]*$', '\\1') }}
+
+- name: Print choosen color
+  debug: msg="Deploy color {{ blue_green_color }}"
+  when: verbose is defined
+
+- name: Print choosen deploy directory
+  debug: msg="Deploy directory {{ blue_green_color_directory }}"
+  when: verbose is defined
+
+- name: Print parent deploy directory
+  debug: msg="Parent deploy directory {{ blue_green_color_parent_directory }}"
+  when: verbose is defined
+
+# This probably can not happen, but we want to be sure to fail fast instead of
+# deferring failure (or even deploying crap)
+- fail: msg="Unable to determine which one of blue/green needs a deploy !"
+  when: "blue_green_color is not defined or blue_green_color not in [ 'blue', 'green' ]"

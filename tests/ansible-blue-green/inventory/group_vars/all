@@ -1,0 +1,6 @@
+# DO NOT user root as database user
+# It will drop it's own rights on the mysql table !
+
+blue_green_directories: { blue: "/srv/www_blue/webapp", 
+                          green: "/srv/www_green/webapp" }
+
