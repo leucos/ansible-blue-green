@@ -60,7 +60,7 @@ function install() {
 
   # Copy self to /usr/local/bin/specs, replacing ROLENAME with actually tested
   # role
-  sed -e "s/_ROLENAME_/$2/" < $(readlink -f $0) | sudo tee /usr/local/bin/specs > /dev/null
+  sed -e "s/_ROLENAME_/$1/" < $(readlink -f $0) | sudo tee /usr/local/bin/specs > /dev/null
   sudo chmod 755 /usr/local/bin/specs
 
   # Install Git
@@ -74,10 +74,10 @@ function install() {
   su_wrap 'ROLESPEC_LIB="/usr/local/lib/rolespec" rolespec -i ~/testdir'
 
   # Symlinking source in rolespec's role dir
-  su_wrap "ln -sf ${SOURCE}/ ~/testdir/roles/$2"
+  su_wrap "ln -sf ${SOURCE}/ ~/testdir/roles/$1"
 
   # Symlinking tests in rolespec's test dir
-  su_wrap "ln -sf ${SOURCE}/tests/$2/ ~/testdir/tests/"
+  su_wrap "ln -sf ${SOURCE}/tests/$1/ ~/testdir/tests/"
 
   # Symlinks requirements.yml if any
   [ -e ${SOURCE}/requirements.yml ] && su_wrap "ln -sf ${SOURCE}/requirements.yml ~/testdir/"
@@ -95,7 +95,8 @@ function install() {
 }
 
 if [ "x$1" == "x--install" ]; then
-  install "$*"
+  echo Installing specs for $2
+  install $2
 fi
 
 cd ~/testdir && TRAVIS_REPO_SLUG= ROLESPEC_LIB="/usr/local/lib/rolespec" rolespec -r _ROLENAME_ "$*"

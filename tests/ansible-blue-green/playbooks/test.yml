@@ -1,7 +1,0 @@
----
-
-- hosts: 'vagrant-ubuntu-trusty-64'
-  sudo: true
-
-  roles:
-    - role: 'ansible-laclasse-annuaire'

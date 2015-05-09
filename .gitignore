@@ -1,0 +1,2 @@
+tests/ansible-blue-green/playbooks/
+.vagrant/

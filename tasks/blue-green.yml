@@ -20,6 +20,7 @@
     - green
   args:
     chdir: "{{ blue_green_directories[item] }}"
+  changed_when: false
   register: color_dates
   ignore_errors: yes
 
