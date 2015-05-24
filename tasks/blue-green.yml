@@ -1,42 +1,42 @@
-- name: Show blue_green_directories variables
-  debug: var=blue_green_directories
-  when: verbose is defined
-
 - name: Checks that directories variable are set
-  fail: msg="'blue_green_directories' dict variable is not set. Please, see README.md."
-  when: blue_green_directories is not defined
+  fail: msg="'blue_green' dict variable is not set. Please, see README.md."
+  when: blue_green is not defined
 
 - name: Checks that directories variable contains proper colors
-  fail: msg="'blue_green_directories' application path for {{ item }} is not set. Please, see README.md."
-  when: blue_green_directories[item] is not defined
-  with_items:
-    - blue
-    - green
+  fail: msg="'blue_green directory' application path for {{ item.key }} is not set. Please, see README.md."
+  when: blue_green[item.key].directory is not defined
+  with_dict: blue_green
+
+- name: Show blue_green_directories variables
+  debug: var=blue_green
+  when: verbose is defined
 
 - name: Check which color to deploy
   shell: git show -s --format=%ct
-  with_items:
-    - blue
-    - green
   args:
-    chdir: "{{ blue_green_directories[item] }}"
+    chdir: "{{ blue_green[item.key].directory }}"
+  with_dict: blue_green
   changed_when: false
   register: color_dates
   ignore_errors: yes
 
-- name: Prints debug
+- name: Debugs color_dates
   debug: var=color_dates
   when: verbose is defined
 
 - name: Set color
-  set_fact: blue_green_color={{color_dates['results'][1]['item']}}
+  set_fact: blue_green_color={{color_dates.results[1].item.key}}
   when: "color_dates|success and (color_dates['results'][0]['stdout'] > color_dates['results'][1]['stdout'])"
 
 # Lower than or equal operator makes sure blue or green wins is both directories
 # contains the exact same version (e.g., after bootstrapping empty directories)
 - name: Set color
-  set_fact: blue_green_color={{color_dates['results'][0]['item']}}
+  set_fact: blue_green_color={{color_dates.results[0].item.key}}
   when: "color_dates|success and (color_dates['results'][0]['stdout'] <= color_dates['results'][1]['stdout'])"
+
+- name: Debugs color
+  debug: var=blue_green_color
+  when: verbose is defined
 
 - name: Override to set deploy to failed color (bootstrapping case)
   set_fact: blue_green_color={{ item.item }}
@@ -44,7 +44,7 @@
   with_items: color_dates['results']
 
 - name: Set deploy directory
-  set_fact: blue_green_color_directory={{ blue_green_directories[blue_green_color] }}
+  set_fact: blue_green_color_directory={{ blue_green[blue_green_color].directory }}
 
 # We also return the parent directory if git module is used
 # We remove last directory component so git module doesn't subsequentely
