@@ -25,8 +25,6 @@ by a variable (see Example below).
 Role Variables
 --------------
 
-`deploy_color`
-
 ## Required variables
 
 - `blue_green_directories`: dict containing blue and green application
