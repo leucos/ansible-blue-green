@@ -44,7 +44,7 @@
   with_items: color_dates['results']
 
 - name: Set deploy directory
-  set_fact: blue_green_color_directory={{ blue_green[blue_green_color].directory }}
+  set_fact: blue_green_color_directory={{ blue_green[blue_green_color].value.directory }}
 
 # We also return the parent directory if git module is used
 # We remove last directory component so git module doesn't subsequentely
